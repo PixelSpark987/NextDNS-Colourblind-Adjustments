@@ -6,7 +6,7 @@
 // @downloadURL  https://raw.githubusercontent.com/PixelSpark987/NextDNS-Colourblind-Adjustments/refs/heads/main/NextDNS%20-%20Colourblind%20Adjustments.js
 // @updateURL    https://raw.githubusercontent.com/PixelSpark987/NextDNS-Colourblind-Adjustments/refs/heads/main/NextDNS%20-%20Colourblind%20Adjustments.js
 // @icon         https://my.nextdns.io/favicon.ico
-// @version      1.5
+// @version      2.0
 // @match        https://my.nextdns.io/*
 // @grant        none
 // ==/UserScript==
@@ -30,28 +30,57 @@
         return null;
     }
 
+    function isGrey(rgb) {
+        if (!rgb) return true;
+        const max = Math.max(rgb.r, rgb.g, rgb.b);
+        const min = Math.min(rgb.r, rgb.g, rgb.b);
+        return (max - min) <= 15;
+    }
+
+    function resetRowStyles(row) {
+        row.style.borderLeftColor = '';
+        row.style.color = '';
+        const icons = row.querySelectorAll('svg, .reason-icon');
+        icons.forEach(icon => {
+            icon.style.color = '';
+        });
+    }
+
+    function isRowDisabled(row) {
+        // Explicit toggle switch check
+        const toggleSwitch = row.querySelector('.form-check-input[type="checkbox"]');
+        if (toggleSwitch) {
+            return !toggleSwitch.checked;
+        }
+
+        // Check overall row/main content opacity for logs or non-switch views
+        const flexMain = row.querySelector('.flex-grow-1');
+        if (flexMain && flexMain.style.opacity) {
+            const opacityVal = parseFloat(flexMain.style.opacity);
+            if (opacityVal < 0.8) return true;
+        }
+
+        return false;
+    }
+
     function processRow(row) {
-        const computedStyle = window.getComputedStyle(row);
-        const rawBorderColor = computedStyle.borderLeftColor;
-
-        // Check inline style directly to catch native site resets
-        const inlineBorderColor = row.style.borderLeftColor || row.style.borderLeft;
-
-        // If disabled / no border color active, don't force recolour
-        if (!rawBorderColor || rawBorderColor === 'transparent' || rawBorderColor === 'rgba(0, 0, 0, 0)') {
+        if (isRowDisabled(row)) {
+            resetRowStyles(row);
             return;
         }
 
-        const rgb = parseRgbValues(rawBorderColor) || parseRgbValues(inlineBorderColor);
-        let targetColor = null;
+        const computedStyle = window.getComputedStyle(row);
+        const rawBorderColor = computedStyle.borderLeftColor;
+        const inlineBorderColor = row.style.borderLeftColor || row.style.borderLeft || row.getAttribute('data-darkreader-inline-border-left');
 
-        if (rgb) {
-            // Detect Red (Allowlist/Denylist/Logs red)
-            if (rgb.r > 180 && rgb.g < 120 && rgb.b < 120) {
-                targetColor = COLOR_BLIND_ORANGE;
-            }
-            // Detect Green (Allowlist/Denylist/Logs green)
-            else if (rgb.g > 120 && rgb.r < 120) {
+        const rgb = parseRgbValues(inlineBorderColor) || parseRgbValues(rawBorderColor);
+
+        // Standard NextDNS red border (rgb(255, 65, 54)) or any dominant red tint maps to ORANGE
+        // If rgb is missing or is neutral grey, default active items on categories/denylist to ORANGE
+        let targetColor = COLOR_BLIND_ORANGE;
+
+        if (rgb && !isGrey(rgb)) {
+            if (rgb.g > rgb.r || rgb.b > rgb.r) {
                 targetColor = COLOR_BLIND_BLUE;
             }
         }
@@ -86,9 +115,12 @@
             if (mutation.type === 'childList') {
                 shouldCheck = true;
                 break;
-            } else if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+            } else if (mutation.type === 'attributes') {
                 if (mutation.target.classList && mutation.target.classList.contains('list-group-item')) {
                     processRow(mutation.target);
+                } else if (mutation.target.classList && mutation.target.classList.contains('form-check-input')) {
+                    const parentRow = mutation.target.closest('.list-group-item');
+                    if (parentRow) processRow(parentRow);
                 }
             }
         }
@@ -101,6 +133,6 @@
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['style']
+        attributeFilter: ['style', 'checked']
     });
 })();

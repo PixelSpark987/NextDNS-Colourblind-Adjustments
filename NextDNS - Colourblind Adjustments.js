@@ -5,6 +5,7 @@
 // @namespace    http://tampermonkey.net/
 // @downloadURL  https://raw.githubusercontent.com/PixelSpark987/NextDNS-Colourblind-Adjustments/refs/heads/main/NextDNS%20-%20Colourblind%20Adjustments.js
 // @updateURL    https://raw.githubusercontent.com/PixelSpark987/NextDNS-Colourblind-Adjustments/refs/heads/main/NextDNS%20-%20Colourblind%20Adjustments.js
+// @icon         https://my.nextdns.io/favicon.ico
 // @version      1.5
 // @match        https://my.nextdns.io/*
 // @grant        none

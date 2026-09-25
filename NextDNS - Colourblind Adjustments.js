@@ -3,7 +3,9 @@
 // @description  Converts NextDNS logs, the Allowlist, and the Denylist to colourblind orange and turquoise for better visibility
 // @author       PixelSpark987 - https://is.gd/PS987
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @downloadURL  https://raw.githubusercontent.com/PixelSpark987/NextDNS-Colourblind-Adjustments/refs/heads/main/NextDNS%20-%20Colourblind%20Adjustments.js
+// @updateURL    https://raw.githubusercontent.com/PixelSpark987/NextDNS-Colourblind-Adjustments/refs/heads/main/NextDNS%20-%20Colourblind%20Adjustments.js
+// @version      1.5
 // @match        https://my.nextdns.io/*
 // @grant        none
 // ==/UserScript==
